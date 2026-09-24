@@ -1,164 +1,186 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-type ContactRequest = {
+import { sendStaffNotification } from "@/lib/email/notifications";
+import {
+  getClientIp,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/security/rate-limit";
+import { isHoneypotTriggered } from "@/lib/security/spam";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export const runtime = "nodejs";
+
+type ContactPayload = {
   name?: unknown;
   email?: unknown;
   phone?: unknown;
   subject?: unknown;
   message?: unknown;
+  website?: unknown;
 };
 
-function cleanText(value: unknown): string {
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value.trim();
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-function isValidEmail(email: string): boolean {
+function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
+  const ip = getClientIp(request);
+
+  const limit = rateLimit({
+    key: `contact:${ip}`,
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!limit.success) {
+    return rateLimitResponse(limit.resetAt);
+  }
+
   try {
-    const body = (await request.json()) as ContactRequest;
+    const body = (await request.json()) as ContactPayload;
 
-    const name = cleanText(body.name);
-    const email = cleanText(body.email).toLowerCase();
-    const phone = cleanText(body.phone);
-    const subject = cleanText(body.subject);
-    const message = cleanText(body.message);
-
-    // Required fields
-    if (!name || !email || !subject || !message) {
+    if (isHoneypotTriggered(body.website)) {
       return NextResponse.json(
         {
-          success: false,
-          message: "Please complete all required fields.",
+          success: true,
+          message: "Your message has been received.",
         },
-        {
-          status: 400,
-        }
+        { status: 201 }
       );
     }
 
-    // Email validation
-    if (!isValidEmail(email)) {
+    const name = cleanString(body.name);
+    const email = cleanString(body.email).toLowerCase();
+    const phone = cleanString(body.phone);
+    const subject = cleanString(body.subject);
+    const message = cleanString(body.message);
+
+    if (!name) {
       return NextResponse.json(
-        {
-          success: false,
-          message: "Please enter a valid email address.",
-        },
-        {
-          status: 400,
-        }
+        { success: false, error: "Please provide your name." },
+        { status: 400 }
       );
     }
 
-    // Basic length validation
-    if (name.length < 2 || name.length > 100) {
+    if (!email || !isValidEmail(email)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Please enter a valid name.",
+          error: "Please provide a valid email address.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    if (email.length > 150) {
+    if (!message) {
       return NextResponse.json(
         {
           success: false,
-          message: "Email address is too long.",
+          error: "Please enter your message.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    if (phone.length > 40) {
+    if (name.length > 150) {
+      return NextResponse.json(
+        { success: false, error: "Name is too long." },
+        { status: 400 }
+      );
+    }
+
+    if (email.length > 254) {
+      return NextResponse.json(
+        { success: false, error: "Email address is too long." },
+        { status: 400 }
+      );
+    }
+
+    if (phone.length > 50) {
+      return NextResponse.json(
+        { success: false, error: "Phone number is too long." },
+        { status: 400 }
+      );
+    }
+
+    if (subject.length > 200) {
+      return NextResponse.json(
+        { success: false, error: "Subject is too long." },
+        { status: 400 }
+      );
+    }
+
+    if (message.length > 5000) {
+      return NextResponse.json(
+        { success: false, error: "Message is too long." },
+        { status: 400 }
+      );
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from("contact_submissions")
+      .insert({
+        name,
+        email,
+        phone: phone || null,
+        subject: subject || null,
+        message,
+        status: "new",
+      })
+      .select("id, created_at")
+      .single();
+
+    if (error) {
+      console.error("Contact submission database error:", {
+        code: error.code,
+        message: error.message,
+      });
+
       return NextResponse.json(
         {
           success: false,
-          message: "Phone number is too long.",
+          error:
+            "We could not submit your message at this time. Please try again.",
         },
-        {
-          status: 400,
-        }
+        { status: 500 }
       );
     }
 
-    if (subject.length < 3 || subject.length > 150) {
-      return NextResponse.json(
+    const notification = await sendStaffNotification({
+      subject: `New contact message from ${name}`,
+      title: "New Contact Message",
+      fields: [
+        { label: "Reference", value: data.id },
+        { label: "Name", value: name },
+        { label: "Email", value: email },
+        { label: "Phone", value: phone || "Not provided" },
+        { label: "Subject", value: subject || "Not provided" },
+        { label: "Message", value: message },
         {
-          success: false,
-          message: "Subject must be between 3 and 150 characters.",
+          label: "Received",
+          value: new Date(data.created_at).toLocaleString(),
         },
-        {
-          status: 400,
-        }
+      ],
+    });
+
+    if (!notification.success) {
+      console.warn(
+        `Contact submission ${data.id} was stored, but staff email notification was not sent.`
       );
-    }
-
-    if (message.length < 10 || message.length > 5000) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Message must be between 10 and 5,000 characters.",
-        },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    const contactSubmission = {
-      name,
-      email,
-      phone: phone || null,
-      subject,
-      message,
-      submittedAt: new Date().toISOString(),
-    };
-
-    /*
-     * -------------------------------------------------------
-     * EMAIL / DATABASE INTEGRATION
-     * -------------------------------------------------------
-     *
-     * We will connect this here next.
-     *
-     * For example:
-     *
-     * await sendContactEmail(contactSubmission);
-     *
-     * or:
-     *
-     * await db.contactSubmission.create({
-     *   data: contactSubmission,
-     * });
-     *
-     * Do NOT expose email API keys or database credentials
-     * inside the frontend.
-     */
-
-    if (process.env.NODE_ENV === "development") {
-      console.log("Contact submission:", contactSubmission);
     }
 
     return NextResponse.json(
       {
         success: true,
-        message: "Your message has been received successfully.",
+        message: "Your message has been received.",
+        reference: data.id,
       },
-      {
-        status: 200,
-      }
+      { status: 201 }
     );
   } catch (error) {
     console.error("Contact API error:", error);
@@ -166,12 +188,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          "We could not process your message at this time. Please try again.",
+        error:
+          "We could not submit your message at this time. Please try again.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

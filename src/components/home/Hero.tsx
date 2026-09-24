@@ -3,7 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "motion/react";
-import { ArrowRight, HeartHandshake } from "lucide-react";
+import {
+  ArrowRight,
+  HeartHandshake,
+} from "lucide-react";
 
 const headingVariants = {
   hidden: {},
@@ -50,21 +53,37 @@ export default function Hero() {
 
       {/* Content */}
       <div className="relative z-10 mx-auto flex min-h-[760px] max-w-7xl items-center px-6 pb-16 pt-40 lg:min-h-screen lg:px-8 lg:pb-20 lg:pt-44">
-        <div className="max-w-3xl">
+        <div className="max-w-4xl">
           {/* Badge */}
           <motion.div
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 15,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             transition={{
               duration: 0.6,
               delay: 0.05,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
             }}
             className="mb-8"
           >
             <div className="inline-flex items-center gap-3 rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm text-white/90 backdrop-blur-sm">
-              <HeartHandshake size={18} />
-              <span>Supporting communities across The Gambia</span>
+              <HeartHandshake
+                size={18}
+              />
+
+              <span>
+                Mental Health Advocacy
+              </span>
             </div>
           </motion.div>
 
@@ -73,47 +92,80 @@ export default function Hero() {
             variants={headingVariants}
             initial="hidden"
             animate="visible"
-            className="text-5xl font-bold leading-[0.98] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl xl:text-[82px]"
+            className="max-w-4xl text-5xl font-bold leading-[0.98] tracking-[-0.04em] text-white sm:text-6xl lg:text-7xl xl:text-[82px]"
           >
-            <motion.span variants={lineVariants} className="block">
-              Stronger
+            <motion.span
+              variants={lineVariants}
+              className="block"
+            >
+              Transforming
             </motion.span>
 
-            <motion.span variants={lineVariants} className="block">
-              Communities.
+            <motion.span
+              variants={lineVariants}
+              className="block"
+            >
+              the Nation Through
             </motion.span>
 
             <motion.span
               variants={lineVariants}
               className="mt-2 block text-[#69d99a]"
             >
-              Brighter Futures.
+              Psychoeducation.
             </motion.span>
           </motion.h1>
 
           {/* Description */}
           <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 18,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             transition={{
               duration: 0.7,
               delay: 0.45,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
             }}
             className="mt-8 max-w-2xl text-lg leading-8 text-white/70 lg:text-xl"
           >
-            Fighting drug abuse, supporting vulnerable people, responding to
-            disasters, and building healthier communities across The Gambia.
+            Sangbe Foundation uses
+            psycho-education to raise
+            awareness about stress,
+            addiction and mental health,
+            while promoting healthy
+            coping strategies and
+            positive behavioral change.
           </motion.p>
 
           {/* Buttons */}
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{
+              opacity: 0,
+              y: 18,
+            }}
+            animate={{
+              opacity: 1,
+              y: 0,
+            }}
             transition={{
               duration: 0.7,
               delay: 0.55,
-              ease: [0.22, 1, 0.36, 1],
+              ease: [
+                0.22,
+                1,
+                0.36,
+                1,
+              ],
             }}
             className="mt-9 flex flex-wrap gap-4"
           >
@@ -122,7 +174,10 @@ export default function Hero() {
               className="inline-flex items-center gap-3 rounded-xl bg-[#20ad60] px-7 py-4 font-semibold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[#189951] hover:shadow-lg"
             >
               Donate Now
-              <ArrowRight size={19} />
+
+              <ArrowRight
+                size={19}
+              />
             </Link>
 
             <Link
@@ -135,19 +190,33 @@ export default function Hero() {
 
           {/* Metadata */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
             transition={{
               duration: 0.8,
               delay: 0.7,
             }}
             className="mt-16 flex flex-wrap items-center gap-x-7 gap-y-3 text-sm text-white/55"
           >
-            <span>Registered NGO</span>
+            <span>
+              Registered NGO
+            </span>
+
             <span className="hidden h-1 w-1 rounded-full bg-white/40 sm:block" />
-            <span>Established 2019</span>
+
+            <span>
+              Established 2019
+            </span>
+
             <span className="hidden h-1 w-1 rounded-full bg-white/40 sm:block" />
-            <span>Busumbala, The Gambia</span>
+
+            <span>
+              Busumbala, The Gambia
+            </span>
           </motion.div>
         </div>
       </div>

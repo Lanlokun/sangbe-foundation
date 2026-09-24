@@ -1,311 +1,294 @@
-import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { NextResponse } from "next/server";
 
-type DonationRequestBody = {
+import { sendStaffNotification } from "@/lib/email/notifications";
+import {
+  getClientIp,
+  rateLimit,
+  rateLimitResponse,
+} from "@/lib/security/rate-limit";
+import { isHoneypotTriggered } from "@/lib/security/spam";
+import { supabaseAdmin } from "@/lib/supabase/admin";
+
+export const runtime = "nodejs";
+
+type DonationMethod =
+  | "wave"
+  | "bank"
+  | "international_bank";
+
+type DonationPayload = {
   method?: unknown;
   amount?: unknown;
-
-  // These are optional for now and allow us to extend
-  // the donation flow later without redesigning the API.
   donorName?: unknown;
   donorEmail?: unknown;
   donorPhone?: unknown;
   anonymous?: unknown;
-  reference?: unknown;
+  website?: unknown;
 };
 
-const VALID_METHODS = [
+const VALID_METHODS = new Set<DonationMethod>([
+  "wave",
   "bank",
-  "mobile",
-  "qmoney",
-  "afrimoney",
-  "other",
-];
+  "international_bank",
+]);
 
-const MIN_DONATION = 1;
-const MAX_DONATION = 10_000_000;
-
-function cleanText(value: unknown): string {
-  if (typeof value !== "string") {
-    return "";
-  }
-
-  return value.trim();
+function cleanString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
-function isValidEmail(email: string): boolean {
+function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function isValidPhone(phone: string): boolean {
-  return /^[0-9+\-()\s]{7,30}$/.test(phone);
-}
+function createDonationReference() {
+  const date = new Date()
+    .toISOString()
+    .slice(0, 10)
+    .replaceAll("-", "");
 
-function createReference(): string {
-  const timestamp = Date.now().toString(36).toUpperCase();
-
-  const random = crypto.randomUUID()
-    .replace(/-/g, "")
-    .slice(0, 6)
+  const suffix = randomUUID()
+    .replaceAll("-", "")
+    .slice(0, 8)
     .toUpperCase();
 
-  return `SANGBE-${timestamp}-${random}`;
+  return `SANGBE-${date}-${suffix}`;
 }
 
-export async function POST(request: NextRequest) {
+function getPaymentMethodLabel(method: DonationMethod) {
+  switch (method) {
+    case "wave":
+      return "Wave";
+    case "bank":
+      return "Ecobank Gambia";
+    case "international_bank":
+      return "International Bank Transfer";
+  }
+}
+
+export async function POST(request: Request) {
+  const ip = getClientIp(request);
+
+  const limit = rateLimit({
+    key: `donations:${ip}`,
+    limit: 5,
+    windowMs: 10 * 60 * 1000,
+  });
+
+  if (!limit.success) {
+    return rateLimitResponse(limit.resetAt);
+  }
+
   try {
-    const body = (await request.json()) as DonationRequestBody;
+    const body = (await request.json()) as DonationPayload;
 
-    const method = cleanText(body.method).toLowerCase();
+    if (isHoneypotTriggered(body.website)) {
+      return NextResponse.json(
+        {
+          success: true,
+          message: "Your donation request has been created.",
+        },
+        { status: 201 }
+      );
+    }
 
-    const donorName = cleanText(body.donorName);
-    const donorEmail = cleanText(body.donorEmail).toLowerCase();
-    const donorPhone = cleanText(body.donorPhone);
-    const paymentReference = cleanText(body.reference);
-
+    const method = cleanString(body.method) as DonationMethod;
+    const donorName = cleanString(body.donorName);
+    const donorEmail = cleanString(body.donorEmail).toLowerCase();
+    const donorPhone = cleanString(body.donorPhone);
     const anonymous = body.anonymous === true;
 
-    // ---------------------------------------------
-    // Amount
-    // ---------------------------------------------
+    const amount =
+      typeof body.amount === "number"
+        ? body.amount
+        : Number(body.amount);
 
-    let amount: number;
+    if (!VALID_METHODS.has(method)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Please select a valid payment method.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (!Number.isFinite(amount) || amount < 1) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Please enter a valid donation amount.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (amount > 10_000_000) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "The donation amount exceeds the supported limit.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const roundedAmount = Math.round(amount * 100) / 100;
+
+    if (Math.abs(amount - roundedAmount) > Number.EPSILON) {
+      return NextResponse.json(
+        {
+          success: false,
+          error:
+            "Donation amounts may contain no more than two decimal places.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (donorEmail && !isValidEmail(donorEmail)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Please provide a valid email address.",
+        },
+        { status: 400 }
+      );
+    }
 
     if (
-      typeof body.amount === "number" ||
-      typeof body.amount === "string"
+      donorName.length > 150 ||
+      donorEmail.length > 254 ||
+      donorPhone.length > 50
     ) {
-      amount = Number(body.amount);
-    } else {
-      amount = Number.NaN;
-    }
-
-    if (!Number.isFinite(amount)) {
       return NextResponse.json(
         {
           success: false,
-          message: "Please enter a valid donation amount.",
+          error: "One or more donor fields exceed the allowed length.",
         },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
-    if (amount < MIN_DONATION) {
+    const reference = createDonationReference();
+
+    const { data, error } = await supabaseAdmin
+      .from("donation_intents")
+      .insert({
+        reference,
+        donor_name:
+          anonymous || !donorName ? null : donorName,
+        donor_email:
+          anonymous || !donorEmail ? null : donorEmail,
+        donor_phone:
+          anonymous || !donorPhone ? null : donorPhone,
+        anonymous,
+        method,
+        amount: roundedAmount,
+        currency: "GMD",
+        donor_reference: null,
+        payment_status: "pending",
+      })
+      .select(
+        `
+          id,
+          reference,
+          amount,
+          currency,
+          method,
+          payment_status,
+          created_at
+        `
+      )
+      .single();
+
+    if (error) {
+      console.error("Donation database error:", {
+        code: error.code,
+        message: error.message,
+      });
+
       return NextResponse.json(
         {
           success: false,
-          message: "Donation amount must be at least GMD 1.",
+          error:
+            "We could not create your donation request. Please try again.",
         },
-        {
-          status: 400,
-        }
+        { status: 500 }
       );
     }
 
-    if (amount > MAX_DONATION) {
-      return NextResponse.json(
+    const paymentMethodLabel =
+      getPaymentMethodLabel(method);
+
+    const notification = await sendStaffNotification({
+      subject: `New pending donation — GMD ${roundedAmount.toLocaleString()} — ${paymentMethodLabel}`,
+      title: "New Pending Donation",
+      fields: [
         {
-          success: false,
-          message:
-            "Please contact Sangbe Foundation directly for donations of this size.",
+          label: "Donation Reference",
+          value: data.reference,
         },
         {
-          status: 400,
-        }
-      );
-    }
-
-    // Maximum two decimal places
-    if (!Number.isInteger(amount * 100)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message:
-            "Donation amount cannot contain more than two decimal places.",
+          label: "Amount",
+          value: `GMD ${Number(data.amount).toLocaleString()}`,
         },
         {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------
-    // Payment method
-    // ---------------------------------------------
-
-    if (!VALID_METHODS.includes(method)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Please select a valid donation method.",
+          label: "Payment Method",
+          value: paymentMethodLabel,
         },
         {
-          status: 400,
-        }
-      );
-    }
-
-    // ---------------------------------------------
-    // Optional donor information
-    // ---------------------------------------------
-
-    if (donorName && donorName.length > 100) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Donor name is too long.",
+          label: "Payment Status",
+          value: "PENDING — NOT YET VERIFIED",
         },
         {
-          status: 400,
-        }
-      );
-    }
-
-    if (donorEmail) {
-      if (!isValidEmail(donorEmail)) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Please enter a valid email address.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-
-      if (donorEmail.length > 150) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: "Email address is too long.",
-          },
-          {
-            status: 400,
-          }
-        );
-      }
-    }
-
-    if (donorPhone && !isValidPhone(donorPhone)) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Please enter a valid phone or WhatsApp number.",
+          label: "Anonymous",
+          value: anonymous ? "Yes" : "No",
         },
         {
-          status: 400,
-        }
-      );
-    }
-
-    if (paymentReference.length > 150) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Payment reference is too long.",
+          label: "Donor Name",
+          value: anonymous
+            ? "Anonymous"
+            : donorName || "Not provided",
         },
         {
-          status: 400,
-        }
+          label: "Donor Email",
+          value: anonymous
+            ? "Not retained"
+            : donorEmail || "Not provided",
+        },
+        {
+          label: "Donor Phone",
+          value: anonymous
+            ? "Not retained"
+            : donorPhone || "Not provided",
+        },
+        {
+          label: "Created",
+          value: new Date(data.created_at).toLocaleString(),
+        },
+      ],
+    });
+
+    if (!notification.success) {
+      console.warn(
+        `Donation intent ${data.reference} was stored, but staff email notification was not sent.`
       );
-    }
-
-    // ---------------------------------------------
-    // Internal donation reference
-    // ---------------------------------------------
-
-    const donationReference = createReference();
-
-    // ---------------------------------------------
-    // Normalized record
-    // ---------------------------------------------
-
-    const donationIntent = {
-      reference: donationReference,
-
-      amount,
-      currency: "GMD",
-
-      method,
-
-      donor: anonymous
-        ? {
-            anonymous: true,
-            name: null,
-            email: null,
-            phone: null,
-          }
-        : {
-            anonymous: false,
-            name: donorName || null,
-            email: donorEmail || null,
-            phone: donorPhone || null,
-          },
-
-      paymentReference: paymentReference || null,
-
-      /*
-       * IMPORTANT:
-       *
-       * This API does NOT confirm that money was received.
-       *
-       * Until an actual payment provider or manual
-       * verification system is connected, the donation
-       * remains an intent.
-       */
-      status: "pending",
-
-      createdAt: new Date().toISOString(),
-    };
-
-    // ---------------------------------------------
-    // Production integration
-    // ---------------------------------------------
-
-    /*
-     * Later:
-     *
-     * await db.donation.create({
-     *   data: donationIntent,
-     * });
-     *
-     * We can then add:
-     *
-     * - QMoney integration
-     * - AfriMoney integration
-     * - Bank-transfer instructions
-     * - Payment confirmation
-     * - Donation receipts
-     * - Admin verification
-     *
-     * A donation must NEVER be marked "paid"
-     * simply because this endpoint was called.
-     */
-
-    if (process.env.NODE_ENV === "development") {
-      console.log("Donation intent received:", donationIntent);
     }
 
     return NextResponse.json(
       {
         success: true,
-
-        message:
-          "Your donation details have been recorded.",
-
+        message: "Your donation request has been created.",
         donation: {
-          reference: donationReference,
-          amount,
-          currency: "GMD",
-          method,
-          status: "pending",
+          reference: data.reference,
+          amount: Number(data.amount),
+          currency: data.currency,
+          method: data.method,
+          status: data.payment_status,
         },
       },
-      {
-        status: 201,
-      }
+      { status: 201 }
     );
   } catch (error) {
     console.error("Donation API error:", error);
@@ -313,12 +296,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        message:
-          "We could not process your donation request at this time. Please try again.",
+        error:
+          "We could not create your donation request. Please try again.",
       },
-      {
-        status: 500,
-      }
+      { status: 500 }
     );
   }
 }

@@ -10,6 +10,7 @@ import {
   Phone,
   Send,
 } from "lucide-react";
+import HoneypotField from "@/components/ui/HoneypotField";
 
 type FormData = {
   name: string;
@@ -29,6 +30,7 @@ const initialForm: FormData = {
 
 export default function ContactSection() {
   const [form, setForm] = useState<FormData>(initialForm);
+  const [website, setWebsite] = useState("");
 
   const [status, setStatus] = useState<
     "idle" | "submitting" | "success" | "error"
@@ -51,44 +53,55 @@ export default function ContactSection() {
     }
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>
-  ) {
-    event.preventDefault();
+async function handleSubmit(
+  event: FormEvent<HTMLFormElement>
+) {
+  event.preventDefault();
 
-    setStatus("submitting");
-    setErrorMessage("");
+  setStatus("submitting");
+  setErrorMessage("");
 
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(form),
-      });
+  try {
+    const response = await fetch("/api/contact", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        ...form,
+        website,
+      }),
+    });
 
-      const data = await response.json().catch(() => null);
+    const data = await response.json().catch(() => null);
 
-      if (!response.ok) {
-        throw new Error(
+    if (!response.ok) {
+      throw new Error(
+        data?.error ||
           data?.message ||
-            "We could not send your message. Please try again."
-        );
-      }
-
-      setStatus("success");
-      setForm(initialForm);
-    } catch (error) {
-      setStatus("error");
-
-      setErrorMessage(
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Please try again."
+          "We could not send your message. Please try again."
       );
     }
+
+    if (!data?.success) {
+      throw new Error(
+        "We could not confirm your submission. Please try again."
+      );
+    }
+
+    setStatus("success");
+    setForm(initialForm);
+    setWebsite("");
+  } catch (error) {
+    setStatus("error");
+
+    setErrorMessage(
+      error instanceof Error
+        ? error.message
+        : "Something went wrong. Please try again."
+    );
   }
+}
 
   return (
     <section className="bg-white py-24 lg:py-28">
@@ -138,13 +151,17 @@ export default function ContactSection() {
                   Phone / WhatsApp
                 </p>
 
-                <p className="mt-1 text-sm text-[#8a978f]">
-                  Contact number coming soon
-                </p>
+                <a
+                  href="tel:+22087779250"
+                  className="mt-1 block text-sm font-medium text-[#68766e] transition-colors hover:text-[#19944f]"
+                >
+                  +220 877 79250
+                </a>
               </div>
             </div>
 
-            <div className="flex gap-4 rounded-[20px] border border-[#e0e8e3] bg-[#f8faf8] p-5">
+
+           <div className="flex gap-4 rounded-[20px] border border-[#e0e8e3] bg-[#f8faf8] p-5">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#eaf7ef]">
                 <Mail size={20} className="text-[#19944f]" />
               </div>
@@ -154,12 +171,15 @@ export default function ContactSection() {
                   Email
                 </p>
 
-                <p className="mt-1 text-sm text-[#8a978f]">
-                  Official email coming soon
-                </p>
+                <a
+                  href="mailto:sangbefoundation@gmail.com"
+                  className="mt-1 block text-sm font-medium text-[#68766e] transition-colors hover:text-[#19944f]"
+                >
+                  sangbefoundation@gmail.com
+                </a>
               </div>
             </div>
-          </div>
+            </div>
 
           <div className="mt-7 flex items-start gap-3 rounded-[18px] bg-[#eaf7ef] p-5">
             <MessageCircle
@@ -220,6 +240,10 @@ export default function ContactSection() {
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
+              <HoneypotField
+                value={website}
+                onChange={setWebsite}
+              />
               <div className="grid gap-6 md:grid-cols-2">
                 <div>
                   <label

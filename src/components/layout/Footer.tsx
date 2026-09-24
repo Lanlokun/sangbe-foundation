@@ -1,11 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import {
-  Heart,
   Mail,
   Phone,
   MapPin,
-  Share2,
-  Camera,
 } from "lucide-react";
 
 const quickLinks = [
@@ -28,48 +26,31 @@ export default function Footer() {
   return (
     <footer className="bg-[#092519] text-white">
       <div className="container py-16 lg:py-20">
-
         <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_0.7fr_0.7fr_1fr]">
-
+          
           {/* Brand */}
           <div>
-            <Link href="/" className="inline-flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/10">
-                <Heart size={22} className="text-[#78d79d]" />
-              </div>
-
-              <div className="leading-tight">
-                <span className="block text-lg font-bold">
-                  Sangbe Foundation
-                </span>
-                <span className="text-xs text-white/50">
-                  Community • Hope • Change
-                </span>
-              </div>
+            <Link
+              href="/"
+              className="relative block h-[90px] w-[220px] overflow-hidden"
+              aria-label="Sangbe Foundation home"
+            >
+              <Image
+                src="/images/sangbe-logo.jpeg"
+                alt="Sangbe Foundation"
+                fill
+                sizes="220px"
+                className="object-contain object-left"
+              />
             </Link>
 
-            <p className="mt-6 max-w-sm text-sm leading-6 text-white/55">
-              Supporting people and communities through awareness, prevention,
-              disaster response, and practical assistance.
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/60">
+              Advancing psycho-education to raise awareness about stress,
+              addiction and mental health while promoting healthy coping
+              strategies and positive behavioral change.
             </p>
 
-            <div className="mt-6 flex gap-3">
-              <a
-                href="#"
-                aria-label="Facebook"
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.07] text-white/70 transition hover:bg-white/15 hover:text-white"
-              >
-                <Share2 size={18} />
-              </a>
-
-              <a
-                href="#"
-                aria-label="Instagram"
-                className="flex h-10 w-10 items-center justify-center rounded-lg bg-white/[0.07] text-white/70 transition hover:bg-white/15 hover:text-white"
-              >
-               <Camera size={18} />
-              </a>
-            </div>
+           
           </div>
 
           {/* Quick Links */}
@@ -116,6 +97,7 @@ export default function Footer() {
                   size={18}
                   className="mt-0.5 shrink-0 text-[#78d79d]"
                 />
+
                 <span>
                   Busumbala, West Coast Region
                   <br />
@@ -124,27 +106,46 @@ export default function Footer() {
               </div>
 
               <div className="flex items-center gap-3">
-                <Phone size={18} className="shrink-0 text-[#78d79d]" />
-                <span>Phone / WhatsApp coming soon</span>
+                <Phone
+                  size={18}
+                  className="shrink-0 text-[#78d79d]"
+                />
+
+                <a
+                  href="tel:+22087779250"
+                  className="transition hover:text-white"
+                >
+                  +220 877 79250
+                </a>
               </div>
 
               <div className="flex items-center gap-3">
-                <Mail size={18} className="shrink-0 text-[#78d79d]" />
-                <span>Email coming soon</span>
+                <Mail
+                  size={18}
+                  className="shrink-0 text-[#78d79d]"
+                />
+
+                <a
+                  href="mailto:sangbefoundation@gmail.com"
+                  className="break-all transition hover:text-white"
+                >
+                  sangbefoundation@gmail.com
+                </a>
               </div>
             </div>
           </div>
-
         </div>
 
+        {/* Bottom */}
         <div className="mt-14 flex flex-col gap-4 border-t border-white/10 pt-7 text-xs text-white/40 sm:flex-row sm:items-center sm:justify-between">
           <p>
             © {new Date().getFullYear()} Sangbe Foundation. All rights reserved.
           </p>
 
-          <p>Stronger communities. Brighter futures.</p>
+          <p className="uppercase tracking-[0.12em]">
+            Transforming the Nation Through Psycho-Education
+          </p>
         </div>
-
       </div>
     </footer>
   );

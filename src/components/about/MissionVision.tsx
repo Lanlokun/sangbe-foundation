@@ -13,17 +13,19 @@ import {
 const cards = [
   {
     icon: Target,
-    label: "Our Purpose",
-    title: "Supporting people where help matters most.",
+    label: "Our Mission",
+    title:
+      "Advancing psycho-education for healthier lives and positive change.",
     description:
-      "We work to address challenges affecting individuals, families, and communities through awareness, practical assistance, and community-focused initiatives.",
+      "We use psycho-education to raise awareness about stress, its effects, and healthy coping mechanisms such as physical activity and meditation. Our goal is to provide professional and effective psycho-education to the general public and schools, free of charge.",
   },
   {
     icon: Eye,
-    label: "Our Direction",
-    title: "Healthier, safer and stronger communities.",
+    label: "Our Vision",
+    title:
+      "A future where young people are better equipped to overcome addiction, mental health challenges, and stress.",
     description:
-      "Our work contributes toward communities where people have greater awareness, support, and opportunities to overcome difficult circumstances.",
+      "We envision young people having access to the knowledge, psychological strategies, and support they need to make healthier choices and overcome difficult circumstances, including those who may not have access to formal education.",
   },
 ];
 
@@ -51,17 +53,19 @@ export default function MissionVision() {
               </p>
 
               <h2 className="max-w-xl text-4xl font-bold leading-[1.08] tracking-[-0.03em] text-white lg:text-5xl">
-                Focused on people.{" "}
+                Knowledge that empowers.{" "}
                 <span className="text-[#72dda0]">
-                  Committed to communities.
+                  Support that transforms.
                 </span>
               </h2>
             </div>
 
             <p className="max-w-lg text-lg leading-8 text-white/60 lg:justify-self-end">
-              Our work is guided by a commitment to practical support,
-              awareness, community participation, and creating opportunities
-              for positive change.
+              Since 2019, Sangbe Foundation has
+              worked to help people understand
+              stress, addiction, mental health,
+              and healthier ways of coping through
+              accessible psycho-education.
             </p>
           </div>
         </Reveal>
