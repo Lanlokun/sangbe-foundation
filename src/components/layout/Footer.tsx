@@ -112,10 +112,10 @@ export default function Footer() {
                 />
 
                 <a
-                  href="tel:+22087779250"
+                  href="tel:+220877779250"
                   className="transition hover:text-white"
                 >
-                  +220 877 79250
+                  +220 877779250
                 </a>
               </div>
 

@@ -155,7 +155,7 @@ async function handleSubmit(
                   href="tel:+22087779250"
                   className="mt-1 block text-sm font-medium text-[#68766e] transition-colors hover:text-[#19944f]"
                 >
-                  +220 877 79250
+                  +220 8777 79250
                 </a>
               </div>
             </div>
