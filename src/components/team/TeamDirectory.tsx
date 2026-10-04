@@ -6,10 +6,6 @@ import {
 } from "lucide-react";
 
 import Reveal from "@/components/ui/Reveal";
-import {
-  Stagger,
-  StaggerItem,
-} from "@/components/ui/Stagger";
 
 import {
   teamMembers,
@@ -80,6 +76,7 @@ function TeamSection({
       }`}
     >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        {/* Section heading */}
         <Reveal>
           <div className="grid gap-5 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
             <div>
@@ -98,7 +95,8 @@ function TeamSection({
           </div>
         </Reveal>
 
-        <Stagger
+        {/* Team grid */}
+        <div
           className={`mt-12 grid gap-6 sm:grid-cols-2 ${
             featured
               ? "lg:max-w-[780px] lg:grid-cols-2"
@@ -106,7 +104,7 @@ function TeamSection({
           }`}
         >
           {members.map((member) => (
-            <StaggerItem
+            <div
               key={member.slug}
               className="h-full"
             >
@@ -120,9 +118,9 @@ function TeamSection({
                   featured={featured}
                 />
               </Link>
-            </StaggerItem>
+            </div>
           ))}
-        </Stagger>
+        </div>
       </div>
     </section>
   );
@@ -141,7 +139,6 @@ function TeamCard({
 }) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-[#dde7e0] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c7ddce] hover:shadow-[0_18px_45px_rgba(20,50,35,0.08)]">
-
       {/* Member photo */}
       <div
         className={`relative overflow-hidden bg-[#e5efe8] ${
@@ -164,10 +161,14 @@ function TeamCard({
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center">
+            {/* Decorative background */}
             <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#d6e9dc]" />
 
             <div className="absolute -bottom-24 -left-20 h-60 w-60 rounded-full bg-[#eef5f0]" />
 
+            <div className="absolute left-8 top-8 h-16 w-16 rounded-full border border-[#cfe2d5]" />
+
+            {/* Placeholder icon */}
             <div
               className={`relative flex items-center justify-center rounded-full border border-white/70 bg-white/65 shadow-sm backdrop-blur-sm ${
                 featured
@@ -184,6 +185,7 @@ function TeamCard({
           </div>
         )}
 
+        {/* Image overlay */}
         {member.image && (
           <div className="absolute inset-0 bg-gradient-to-t from-[#073b29]/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         )}
@@ -194,7 +196,9 @@ function TeamCard({
         <div className="flex-1">
           <h3
             className={`font-bold tracking-[-0.015em] text-[#142019] transition-colors duration-300 group-hover:text-[#178f4c] ${
-              featured ? "text-xl" : "text-lg"
+              featured
+                ? "text-xl"
+                : "text-lg"
             }`}
           >
             {member.name}
@@ -217,6 +221,7 @@ function TeamCard({
           )}
         </div>
 
+        {/* Profile link */}
         <div className="mt-6 flex items-center justify-between border-t border-[#edf1ee] pt-4">
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#7b8980] transition-colors duration-300 group-hover:text-[#178f4c]">
             View Profile
