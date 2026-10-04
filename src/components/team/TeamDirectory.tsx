@@ -24,12 +24,8 @@ const leadership = teamMembers.filter(
   (member) => member.category === "leadership"
 );
 
-const management = teamMembers.filter(
-  (member) => member.category === "management"
-);
-
-const representatives = teamMembers.filter(
-  (member) => member.category === "representatives"
+const team = teamMembers.filter(
+  (member) => member.category !== "leadership"
 );
 
 /* -------------------------------------------------------
@@ -48,18 +44,11 @@ export default function TeamDirectory() {
       />
 
       <TeamSection
-        eyebrow="Management & Technical"
-        title="Supporting Our Work"
-        description="Supporting the Foundation's administration, technology, communications, and day-to-day activities."
-        members={management}
+        eyebrow="Our Team"
+        title="The People Behind Sangbe Foundation"
+        description="Meet the people contributing their experience, skills, and commitment to the Foundation's work across its different areas and chapters."
+        members={team}
         muted
-      />
-
-      <TeamSection
-        eyebrow="Representatives & Advisors"
-        title="Extending Our Network"
-        description="Contributing experience, representation, advice, and connections that help strengthen the Foundation's work."
-        members={representatives}
       />
     </>
   );
@@ -110,7 +99,7 @@ function TeamSection({
         </Reveal>
 
         <Stagger
-          className={`mt-12 grid gap-5 sm:grid-cols-2 ${
+          className={`mt-12 grid gap-6 sm:grid-cols-2 ${
             featured
               ? "lg:max-w-[780px] lg:grid-cols-2"
               : "lg:grid-cols-3 xl:grid-cols-4"
@@ -152,9 +141,10 @@ function TeamCard({
 }) {
   return (
     <article className="group flex h-full flex-col overflow-hidden rounded-[24px] border border-[#dde7e0] bg-white transition duration-300 hover:-translate-y-1 hover:border-[#c7ddce] hover:shadow-[0_18px_45px_rgba(20,50,35,0.08)]">
+
       {/* Member photo */}
       <div
-        className={`relative flex items-center justify-center overflow-hidden bg-[#e5efe8] ${
+        className={`relative overflow-hidden bg-[#e5efe8] ${
           featured
             ? "aspect-[4/4.15]"
             : "aspect-[4/4.35]"
@@ -165,7 +155,7 @@ function TeamCard({
             src={member.image}
             alt={member.name}
             fill
-            className="object-cover transition duration-500 group-hover:scale-[1.035]"
+            className="object-cover object-top transition duration-500 group-hover:scale-[1.035]"
             sizes={
               featured
                 ? "(max-width: 640px) 100vw, 390px"
@@ -173,15 +163,11 @@ function TeamCard({
             }
           />
         ) : (
-          <>
-            {/* Decorative placeholder background */}
-            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#d6e9dc] transition-transform duration-500 group-hover:scale-110" />
+          <div className="flex h-full w-full items-center justify-center">
+            <div className="absolute -right-20 -top-20 h-56 w-56 rounded-full bg-[#d6e9dc]" />
 
             <div className="absolute -bottom-24 -left-20 h-60 w-60 rounded-full bg-[#eef5f0]" />
 
-            <div className="absolute left-8 top-8 h-16 w-16 rounded-full border border-[#cfe2d5]" />
-
-            {/* Placeholder icon */}
             <div
               className={`relative flex items-center justify-center rounded-full border border-white/70 bg-white/65 shadow-sm backdrop-blur-sm ${
                 featured
@@ -195,10 +181,9 @@ function TeamCard({
                 className="text-[#789b85]"
               />
             </div>
-          </>
+          </div>
         )}
 
-        {/* Image overlay */}
         {member.image && (
           <div className="absolute inset-0 bg-gradient-to-t from-[#073b29]/20 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
         )}
@@ -209,9 +194,7 @@ function TeamCard({
         <div className="flex-1">
           <h3
             className={`font-bold tracking-[-0.015em] text-[#142019] transition-colors duration-300 group-hover:text-[#178f4c] ${
-              featured
-                ? "text-xl"
-                : "text-lg"
+              featured ? "text-xl" : "text-lg"
             }`}
           >
             {member.name}
@@ -234,7 +217,6 @@ function TeamCard({
           )}
         </div>
 
-        {/* Profile link */}
         <div className="mt-6 flex items-center justify-between border-t border-[#edf1ee] pt-4">
           <span className="text-xs font-bold uppercase tracking-[0.12em] text-[#7b8980] transition-colors duration-300 group-hover:text-[#178f4c]">
             View Profile
