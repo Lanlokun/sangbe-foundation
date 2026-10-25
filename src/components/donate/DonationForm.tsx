@@ -749,7 +749,7 @@ function WaveDetails({
     >
       <DetailRow
         label="Wave Number"
-        value="7779250"
+        value="877779250"
         copy
       />
 
