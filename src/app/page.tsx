@@ -1,8 +1,10 @@
+
 import Navbar from "@/components/layout/Navbar";
 import Hero from "@/components/home/Hero";
 import AboutPreview from "@/components/home/AboutPreview";
 import ProgramsPreview from "@/components/home/ProgramsPreview";
 import ImpactSection from "@/components/home/ImpactSection";
+import GhanaVisitHighlight from "@/components/home/GhanaVisitHighlight";
 import GetInvolved from "@/components/home/GetInvolved";
 import PartnersPreview from "@/components/home/PartnersPreview";
 import FinalCTA from "@/components/home/FinalCTA";
@@ -26,6 +28,8 @@ export default function Home() {
         <Reveal>
           <ImpactSection />
         </Reveal>
+
+        <GhanaVisitHighlight />
 
         <GetInvolved />
 

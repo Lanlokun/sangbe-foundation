@@ -109,6 +109,13 @@ export const teamMembers: TeamMember[] = [
     category: "representatives",
     image: "/images/team/ninche.jpeg",
   },
+  {
+  slug: "ebou-turay",
+  name: "Ebou Turay",
+  role: "Special Editor",
+  category: "management",
+  image: "/images/team/eboutouray.jpeg",
+},
 ];
 
 export function getTeamMember(slug: string) {
