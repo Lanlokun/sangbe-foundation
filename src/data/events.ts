@@ -44,8 +44,7 @@ export const events: Event[] = [
       "The Ghana visit represents an important chapter in Sangbe Foundation's international outreach, reinforcing its commitment to psycho-education, humanitarian service, cultural understanding and meaningful connections across communities.",
     ],
    
-image:
-  "/images/events/ghana-2026/nkrumah-memorial-lecture-group-01.jpeg",
+image:"/images/events/ghana-2026/catherine-cultural-portrait-01.jpeg",
 
 gallery: [
   // Nkrumah Memorial Lecture
@@ -93,6 +92,12 @@ gallery: [
   "/images/events/ghana-2026/airport-reception-group-01.jpeg",
   "/images/events/ghana-2026/airport-reception-group-02.jpeg",
   "/images/events/ghana-2026/airport-reception-group-03.jpeg",
+
+
+  "/images/events/ghana-2026/accra-metropolitan-assembly-visit-01.jpeg",
+  "/images/events/ghana-2026/accra-metropolitan-assembly-visit-02.jpeg",
+  "/images/events/ghana-2026/accra-metropolitan-assembly-visit-03.jpeg",
+  "/images/events/ghana-2026/catherine-event-identification-01.jpeg",
 ],
 
     email: "sangbefoundation@gmail.com",

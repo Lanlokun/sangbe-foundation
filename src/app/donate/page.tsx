@@ -6,6 +6,7 @@ import Footer from "@/components/layout/Footer";
 import DonateHero from "@/components/donate/DonateHero";
 import DonationImpact from "@/components/donate/DonationImpact";
 import DonationForm from "@/components/donate/DonationForm";
+import DonationPaymentDetails from "@/components/donate/DonationPaymentDetails";
 
 export const metadata: Metadata = {
   title: "Donate | Sangbe Foundation",
@@ -19,12 +20,11 @@ export default function DonatePage() {
       <Navbar />
 
       <main>
-        <DonateHero />
-
-        <DonationImpact />
-
-        <DonationForm />
-      </main>
+      <DonateHero />
+      <DonationImpact />
+      <DonationPaymentDetails />
+      <DonationForm />
+    </main>
 
       <Footer />
     </>

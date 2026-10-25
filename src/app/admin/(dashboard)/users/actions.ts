@@ -161,10 +161,29 @@ export async function inviteCMSUser(
 
   const { email, full_name, role } = parsed.data;
 
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+
+  if (!siteUrl) {
+    return {
+      error:
+        "NEXT_PUBLIC_SITE_URL is not configured. " +
+        "Add it to your environment variables.",
+    };
+  }
+
+  let redirectUrl: string;
+
+  try {
+    redirectUrl = new URL("/auth/callback", siteUrl).toString();
+  } catch {
+    return {
+      error: "NEXT_PUBLIC_SITE_URL is not a valid URL.",
+    };
+  }
+
   const admin = createAdminClient();
 
   // Check whether a CMS profile already exists.
-  // Requires the email column in cms_users.
   const {
     data: existingProfile,
     error: profileLookupError,
@@ -210,22 +229,33 @@ export async function inviteCMSUser(
   }
 
   // Send invitation through Supabase Auth.
-  const { data: invitation, error: inviteError } =
-    await admin.auth.admin.inviteUserByEmail(email, {
-      data: {
-        full_name,
-      },
-    });
+  const {
+    data: invitation,
+    error: inviteError,
+  } = await admin.auth.admin.inviteUserByEmail(email, {
+    data: {
+      full_name,
+    },
+    redirectTo: redirectUrl,
+  });
 
-  if (inviteError || !invitation.user) {
+  if (inviteError) {
     return {
-      error:
-        inviteError?.message ??
-        "Unable to send the invitation.",
+      error: inviteError.message,
     };
   }
 
-  const invitedUserId = invitation.user.id;
+  const invitedUser = invitation?.user;
+
+  if (!invitedUser) {
+    return {
+      error:
+        "Supabase did not return an invited user. " +
+        "The invitation may not have been completed.",
+    };
+  }
+
+  const invitedUserId = invitedUser.id;
 
   // Create the CMS profile for the invited user.
   const { error: cmsProfileError } = await admin
