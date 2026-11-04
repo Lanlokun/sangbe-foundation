@@ -197,6 +197,7 @@ export async function saveArticle(
   revalidatePath("/admin");
   revalidatePath("/admin/articles");
   revalidatePath("/articles");
+  revalidatePath("/");
 
   // Refresh the article's public URL.
   revalidatePath(
@@ -222,4 +223,59 @@ export async function saveArticle(
 
   // Return to the article management page.
   redirect("/admin/articles");
+}
+
+
+
+export async function deleteArticle(
+  id: string
+): Promise<{ error: string | null }> {
+  // Verify the CMS user.
+  const user = await requireCMSUser();
+
+  // Only administrators can delete articles.
+  if (!["super_admin", "admin"].includes(user.role)) {
+    return {
+      error: "You do not have permission to delete articles.",
+    };
+  }
+
+  const supabase = await createClient();
+
+  // Retrieve the article before deletion.
+  const { data: article, error: fetchError } =
+    await supabase
+      .from("cms_articles")
+      .select("id, slug")
+      .eq("id", id)
+      .single();
+
+  if (fetchError || !article) {
+    return {
+      error: "Article not found or access denied.",
+    };
+  }
+
+  // Delete the article.
+  const { error } = await supabase
+    .from("cms_articles")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Delete article failed:", error.message);
+
+    return {
+      error: "Unable to delete article. Please try again.",
+    };
+  }
+
+  // Refresh CMS and public pages.
+  revalidatePath("/admin");
+  revalidatePath("/admin/articles");
+  revalidatePath("/articles");
+  revalidatePath(`/articles/${article.slug}`);
+  revalidatePath("/");
+
+  return { error: null };
 }

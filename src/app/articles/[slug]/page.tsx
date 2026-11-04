@@ -4,7 +4,13 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/layout/Footer";
 import { createClient } from "@/lib/supabase/server";
+
+// ==========================================
+// TYPES
+// ==========================================
 
 type RichMark = {
   type: string;
@@ -35,6 +41,10 @@ type ArticleRecord = {
   cover_image_url: string | null;
   published_at: string | null;
 };
+
+// ==========================================
+// RICH TEXT RENDERING
+// ==========================================
 
 function renderText(node: RichNode) {
   let content: React.ReactNode = node.text ?? "";
@@ -72,16 +82,14 @@ function renderText(node: RichNode) {
           href &&
           /^(https?:\/\/|mailto:|\/(?!\/)|#)/i.test(href)
         ) {
+          const external = /^https?:\/\//i.test(href);
+
           content = (
             <a
               href={href}
-              target={
-                /^https?:\/\//i.test(href)
-                  ? "_blank"
-                  : undefined
-              }
+              target={external ? "_blank" : undefined}
               rel={
-                /^https?:\/\//i.test(href)
+                external
                   ? "noopener noreferrer"
                   : undefined
               }
@@ -174,9 +182,7 @@ function RichContent({ node }: { node: RichNode }) {
       );
 
     case "horizontalRule":
-      return (
-        <hr className="my-10 border-[#dce8df]" />
-      );
+      return <hr className="my-10 border-[#dce8df]" />;
 
     case "hardBreak":
       return <br />;
@@ -184,7 +190,11 @@ function RichContent({ node }: { node: RichNode }) {
     case "codeBlock":
       return (
         <pre className="my-6 overflow-x-auto rounded-xl bg-[#173b29] p-5 text-sm leading-7 text-white">
-          <code>{node.content?.map((child) => child.text ?? "").join("")}</code>
+          <code>
+            {node.content
+              ?.map((child) => child.text ?? "")
+              .join("")}
+          </code>
         </pre>
       );
 
@@ -195,6 +205,10 @@ function RichContent({ node }: { node: RichNode }) {
       return <>{children}</>;
   }
 }
+
+// ==========================================
+// FETCH PUBLISHED ARTICLE
+// ==========================================
 
 async function getPublishedArticle(
   slug: string
@@ -216,6 +230,10 @@ async function getPublishedArticle(
 
   return data as ArticleRecord;
 }
+
+// ==========================================
+// SEO METADATA
+// ==========================================
 
 export async function generateMetadata({
   params,
@@ -253,6 +271,10 @@ export async function generateMetadata({
   };
 }
 
+// ==========================================
+// ARTICLE PAGE
+// ==========================================
+
 export default async function ArticlePage({
   params,
 }: {
@@ -266,85 +288,92 @@ export default async function ArticlePage({
   }
 
   return (
-    <main className="min-h-screen bg-[#f7faf7]">
-      <article className="mx-auto max-w-4xl px-5 py-16 sm:px-6 sm:py-20">
-        {/* Back navigation */}
-        <Link
-          href="/articles"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-[#178f4c] transition hover:text-[#10733b]"
-        >
-          <ArrowLeft size={17} />
-          All Articles
-        </Link>
+    <>
+      <Navbar />
 
-        {/* Article header */}
-        <header className="mt-10">
-          <span className="inline-flex rounded-full bg-[#e2f3e7] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#178f4c]">
-            {article.category}
-          </span>
-
-          <h1 className="mt-5 text-3xl font-bold leading-tight tracking-tight text-[#173b29] sm:text-4xl md:text-5xl">
-            {article.title}
-          </h1>
-
-          {article.published_at && (
-            <div className="mt-6 flex items-center gap-2 text-sm text-[#829087]">
-              <CalendarDays size={16} />
-
-              <time dateTime={article.published_at}>
-                Published{" "}
-                {new Date(
-                  article.published_at
-                ).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
-              </time>
-            </div>
-          )}
-
-          {article.excerpt && (
-            <p className="mt-7 max-w-3xl text-lg leading-8 text-[#55705e] sm:text-xl">
-              {article.excerpt}
-            </p>
-          )}
-        </header>
-
-        {/* Cover image */}
-        {article.cover_image_url && (
-          <figure className="mt-10 overflow-hidden rounded-2xl bg-[#edf4ef]">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={article.cover_image_url}
-              alt={article.title}
-              className="max-h-[540px] w-full object-cover"
-            />
-          </figure>
-        )}
-
-        {/* Article content */}
-        <div className="mt-12 border-t border-[#dce8df] pt-10 text-base text-[#34483b] sm:text-lg">
-          {article.content ? (
-            <RichContent node={article.content} />
-          ) : (
-            <p className="text-[#829087]">
-              No article content is available.
-            </p>
-          )}
-        </div>
-
-        {/* Footer navigation */}
-        <footer className="mt-16 border-t border-[#dce8df] pt-8">
+      <main className="min-h-screen bg-[#f7faf7]">
+        <article className="mx-auto max-w-4xl px-5 py-16 sm:px-6 sm:py-20">
+          {/* Back Navigation */}
           <Link
             href="/articles"
             className="inline-flex items-center gap-2 text-sm font-semibold text-[#178f4c] transition hover:text-[#10733b]"
           >
             <ArrowLeft size={17} />
-            Back to All Articles
+            All Articles
           </Link>
-        </footer>
-      </article>
-    </main>
+
+          {/* Article Header */}
+          <header className="mt-10">
+            <span className="inline-flex rounded-full bg-[#e2f3e7] px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#178f4c]">
+              {article.category}
+            </span>
+
+            <h1 className="mt-5 text-3xl font-bold leading-tight tracking-tight text-[#173b29] sm:text-4xl md:text-5xl">
+              {article.title}
+            </h1>
+
+            {article.published_at && (
+              <div className="mt-6 flex items-center gap-2 text-sm text-[#829087]">
+                <CalendarDays size={16} />
+
+                <time dateTime={article.published_at}>
+                  Published{" "}
+                  {new Date(
+                    article.published_at
+                  ).toLocaleDateString("en-GB", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    timeZone: "UTC",
+                  })}
+                </time>
+              </div>
+            )}
+
+            {article.excerpt && (
+              <p className="mt-7 max-w-3xl text-lg leading-8 text-[#55705e] sm:text-xl">
+                {article.excerpt}
+              </p>
+            )}
+          </header>
+
+          {/* Cover Image */}
+          {article.cover_image_url && (
+            <figure className="mt-10 overflow-hidden rounded-2xl bg-[#edf4ef]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={article.cover_image_url}
+                alt={article.title}
+                className="max-h-[540px] w-full object-cover"
+              />
+            </figure>
+          )}
+
+          {/* Article Body */}
+          <div className="mt-12 border-t border-[#dce8df] pt-10 text-base text-[#34483b] sm:text-lg">
+            {article.content ? (
+              <RichContent node={article.content} />
+            ) : (
+              <p className="text-[#829087]">
+                No article content is available.
+              </p>
+            )}
+          </div>
+
+          {/* Footer Navigation */}
+          <footer className="mt-16 border-t border-[#dce8df] pt-8">
+            <Link
+              href="/articles"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[#178f4c] transition hover:text-[#10733b]"
+            >
+              <ArrowLeft size={17} />
+              Back to All Articles
+            </Link>
+          </footer>
+        </article>
+      </main>
+
+      <Footer />
+    </>
   );
 }

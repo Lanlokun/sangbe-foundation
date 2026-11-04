@@ -5,6 +5,7 @@ import AboutPreview from "@/components/home/AboutPreview";
 import ProgramsPreview from "@/components/home/ProgramsPreview";
 import ImpactSection from "@/components/home/ImpactSection";
 import GhanaVisitHighlight from "@/components/home/GhanaVisitHighlight";
+import LatestArticles from "@/components/home/LatestArticles";
 import GetInvolved from "@/components/home/GetInvolved";
 import PartnersPreview from "@/components/home/PartnersPreview";
 import FinalCTA from "@/components/home/FinalCTA";
@@ -30,6 +31,10 @@ export default function Home() {
         </Reveal>
 
         <GhanaVisitHighlight />
+
+        <Reveal>
+          <LatestArticles />
+        </Reveal>
 
         <GetInvolved />
 

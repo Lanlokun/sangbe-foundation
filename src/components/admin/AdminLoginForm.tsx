@@ -1,6 +1,8 @@
 
 "use client";
 
+import Link from "next/link";
+
 import { useActionState } from "react";
 import { LockKeyhole, Mail, LoaderCircle } from "lucide-react";
 
@@ -64,6 +66,15 @@ export default function AdminLoginForm() {
           />
         </div>
       </div>
+
+      <div className="text-right">
+  <Link
+    href="/admin/forgot-password"
+    className="text-sm font-semibold text-[#178f4c] hover:underline"
+  >
+    Forgot password?
+  </Link>
+</div>
 
       {state.error && (
         <p role="alert" className="text-sm text-red-600">

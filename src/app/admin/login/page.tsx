@@ -38,7 +38,16 @@ export default async function AdminLoginPage() {
           Sign in to manage the Foundation&apos;s website content.
         </p>
 
-        <AdminLoginForm />
+      <AdminLoginForm />
+
+        <div className="mt-4 text-right">
+          <Link
+            href="/admin/forgot-password"
+            className="text-sm font-medium text-[#178f4c] hover:underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
 
         <div className="mt-8 border-t border-[#e1e8e3] pt-6 text-center">
           <Link
