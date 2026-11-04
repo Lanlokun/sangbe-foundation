@@ -2,9 +2,12 @@
 "use client";
 
 import Link from "next/link";
-
 import { useActionState } from "react";
-import { LockKeyhole, Mail, LoaderCircle } from "lucide-react";
+import {
+  LockKeyhole,
+  Mail,
+  LoaderCircle,
+} from "lucide-react";
 
 import { login } from "@/app/admin/actions";
 
@@ -14,7 +17,8 @@ export default function AdminLoginForm() {
   });
 
   return (
-    <form action={action} className="mt-8 space-y-5">
+    <form action={action} className="space-y-5">
+      {/* Email Address */}
       <div>
         <label
           htmlFor="email"
@@ -26,7 +30,7 @@ export default function AdminLoginForm() {
         <div className="relative">
           <Mail
             size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#829087]"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#829087]"
           />
 
           <input
@@ -41,6 +45,7 @@ export default function AdminLoginForm() {
         </div>
       </div>
 
+      {/* Password */}
       <div>
         <label
           htmlFor="password"
@@ -52,7 +57,7 @@ export default function AdminLoginForm() {
         <div className="relative">
           <LockKeyhole
             size={18}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-[#829087]"
+            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#829087]"
           />
 
           <input
@@ -67,27 +72,40 @@ export default function AdminLoginForm() {
         </div>
       </div>
 
+      {/* Forgot Password */}
       <div className="text-right">
-  <Link
-    href="/admin/forgot-password"
-    className="text-sm font-semibold text-[#178f4c] hover:underline"
-  >
-    Forgot password?
-  </Link>
-</div>
+        <Link
+          href="/admin/forgot-password"
+          className="text-sm font-semibold text-[#178f4c] transition hover:text-[#10743c] hover:underline"
+        >
+          Forgot password?
+        </Link>
+      </div>
 
+      {/* Authentication Error */}
       {state.error && (
-        <p role="alert" className="text-sm text-red-600">
+        <div
+          role="alert"
+          aria-live="polite"
+          className="rounded-xl border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-600"
+        >
           {state.error}
-        </p>
+        </div>
       )}
 
+      {/* Sign In Button */}
       <button
         type="submit"
         disabled={pending}
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#178f4c] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#10743c] disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2 rounded-xl bg-[#178f4c] px-5 py-3.5 text-sm font-bold text-white transition hover:bg-[#10743c] disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending && <LoaderCircle size={17} className="animate-spin" />}
+        {pending && (
+          <LoaderCircle
+            size={17}
+            className="animate-spin"
+          />
+        )}
+
         {pending ? "Signing in..." : "Sign In"}
       </button>
     </form>

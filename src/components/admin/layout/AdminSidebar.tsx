@@ -2,6 +2,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
@@ -53,6 +54,8 @@ export default function AdminSidebar({
   const pathname = usePathname();
 
   const isSuperAdmin = role === "super_admin";
+  const canManageSettings =
+    role === "super_admin" || role === "admin";
 
   function isActive(href: string) {
     return href === "/admin"
@@ -70,6 +73,7 @@ export default function AdminSidebar({
 
   return (
     <>
+      {/* Mobile overlay */}
       {open && (
         <button
           type="button"
@@ -79,46 +83,55 @@ export default function AdminSidebar({
         />
       )}
 
+      {/* Sidebar */}
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-[264px] flex-col bg-[#073b29] text-white transition-transform duration-200 lg:translate-x-0 ${
           open ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Branding */}
-        <div className="flex h-20 items-center justify-between border-b border-white/10 px-6">
+        {/* Foundation Branding */}
+        <div className="flex h-20 items-center justify-between border-b border-white/10 px-5">
           <Link
             href="/admin"
             onClick={onClose}
-            className="flex items-center gap-3"
+            className="flex min-w-0 items-center gap-3"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#72dda0]/15">
-              <HeartHandshake
-                size={23}
-                className="text-[#72dda0]"
+            {/* Foundation Logo */}
+            <div className="relative h-12 w-12 shrink-0">
+              <Image
+                src="/images/sangbe-logov2.png"
+                alt="Sangbe Foundation Logo"
+                fill
+                priority
+                sizes="48px"
+                className="object-contain"
               />
             </div>
 
-            <div>
-              <p className="text-base font-bold leading-tight">
+            {/* Foundation Name */}
+            <div className="min-w-0">
+              <p className="text-[15px] font-bold leading-tight tracking-tight text-white">
                 Sangbe Foundation
               </p>
-              <p className="mt-1 text-[11px] tracking-wide text-white/55">
+
+              <p className="mt-1 text-[10px] font-medium tracking-wide text-white/55">
                 Content Management
               </p>
             </div>
           </Link>
 
+          {/* Mobile Close Button */}
           <button
             type="button"
             onClick={onClose}
             aria-label="Close menu"
-            className="text-white/70 lg:hidden"
+            className="ml-2 shrink-0 text-white/70 transition hover:text-white lg:hidden"
           >
             <X size={21} />
           </button>
         </div>
 
-        {/* Main navigation */}
+        {/* Main Navigation */}
         <nav
           aria-label="CMS navigation"
           className="flex-1 space-y-1 overflow-y-auto px-4 py-6"
@@ -135,12 +148,16 @@ export default function AdminSidebar({
               aria-current={isActive(href) ? "page" : undefined}
               className={navClass(href)}
             >
-              <Icon size={19} strokeWidth={1.8} />
-              {label}
+              <Icon
+                size={19}
+                strokeWidth={1.8}
+                className="shrink-0"
+              />
+              <span>{label}</span>
             </Link>
           ))}
 
-          {/* Super Admin only */}
+          {/* Super Admin Navigation */}
           {isSuperAdmin && (
             <>
               <div className="my-5 border-t border-white/10" />
@@ -157,16 +174,21 @@ export default function AdminSidebar({
                 }
                 className={navClass("/admin/users")}
               >
-                <UsersRound size={19} strokeWidth={1.8} />
-                Users &amp; Roles
+                <UsersRound
+                  size={19}
+                  strokeWidth={1.8}
+                  className="shrink-0"
+                />
+                <span>Users &amp; Roles</span>
               </Link>
             </>
           )}
         </nav>
 
-        {/* Footer navigation */}
+        {/* Footer Navigation */}
         <div className="space-y-2 border-t border-white/10 p-4">
-          {["super_admin", "admin"].includes(role ?? "") && (
+          {/* Settings: Admin and Super Admin */}
+          {canManageSettings && (
             <Link
               href="/admin/settings"
               onClick={onClose}
@@ -175,24 +197,36 @@ export default function AdminSidebar({
               }
               className={navClass("/admin/settings")}
             >
-              <Settings size={19} strokeWidth={1.8} />
-              Settings
+              <Settings
+                size={19}
+                strokeWidth={1.8}
+                className="shrink-0"
+              />
+              <span>Settings</span>
             </Link>
           )}
 
+          {/* Public Website */}
           <Link
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/65 hover:bg-white/10 hover:text-white"
+            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-white/65 transition hover:bg-white/10 hover:text-white"
           >
-            <ExternalLink size={19} />
-            View Website
+            <ExternalLink
+              size={19}
+              strokeWidth={1.8}
+              className="shrink-0"
+            />
+            <span>View Website</span>
           </Link>
 
-          <p className="px-3 pt-2 text-[11px] text-white/35">
-            Sangbe Foundation CMS
-          </p>
+          {/* CMS Footer */}
+          <div className="px-3 pt-3">
+            <p className="text-[11px] font-medium text-white/35">
+              Sangbe Foundation CMS
+            </p>
+          </div>
         </div>
       </aside>
     </>
