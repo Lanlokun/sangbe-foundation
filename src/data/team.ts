@@ -54,7 +54,7 @@ export const teamMembers: TeamMember[] = [
   name: "Abubakari Gambo",
   role: "International Protocol Officer",
   category: "management",
-  image: "/images/team/gambo.jpeg",
+  image: "/images/team/ninche.jpeg",
 },
   {
     slug: "sainey-danjo",
@@ -107,7 +107,7 @@ export const teamMembers: TeamMember[] = [
     role: "Advisor & Ambassador",
     chapter: "USA Chapter",
     category: "representatives",
-    image: "/images/team/ninche.jpeg",
+    image: "/images/team/gambo.jpeg",
   },
   {
   slug: "ebou-turay",
